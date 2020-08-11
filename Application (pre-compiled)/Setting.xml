@@ -17,7 +17,6 @@
 	</material_props>
 
 	<numerical_setting>
-    		<dt>0.005</dt>
     		<limit>5000</limit>
     		<tol>1e-8</tol>
 	</numerical_setting>
