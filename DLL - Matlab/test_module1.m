@@ -21,7 +21,7 @@ module = 0;
 input_file = 'Setting.xml';
 
 %% Sinusoidal wave example. 
-% %% Option 1 - Input from Matlab function;
+% % Option 1 - Input from Matlab function;
 % dt = 0.005;
 % time = dt:dt:10;
 % A = 0.05; T = 1; w = 2*pi/T;
@@ -34,11 +34,19 @@ input_file = 'Setting.xml';
 %     end
 % end    
 
-%% Option 2 - Read from text file;
-fileID = fopen('inputData/SYNCOM_Input_mod1.txt', 'r');
+% Option 2 - Read from text file;
+fileID = fopen('inputData/SynCOM_Input_mod1.txt', 'r');
 fgetl(fileID);
-sigma = fscanf(fileID, '%f');
+inputdata = fscanf(fileID, '%f', [2 inf]);
+time = inputdata(1,:);
+sigma = inputdata(2,:);
 fclose(fileID);
+
+%% Create dt vector from the time history;
+dt = zeros(1,length(time));
+for i = 2:length(dt)
+    dt(i) = time(i) - time(i-1);
+end
 
 %% Creates data respository;
 eps = zeros(1,length(sigma));
@@ -46,21 +54,27 @@ eps_ve = eps; eps_vp = eps;
 
 %% Load *dll, solve, and extract results;
 % Load library
-loadlibrary('SYNCOM_API','SYNCOM_API.h');
+loadlibrary('SynCOM_API','SynCOM_API.h');
 
 % Initialization.
-calllib('SYNCOM_API','initialize', module, input_file);
-
+calllib('SynCOM_API','initialize', module, input_file);
+err = 0;
 % Call solver
 for i = 2:length(sigma)
-    calllib('SYNCOM_API','SYNCOM', sigma(i));
-    eps(i) = calllib('SYNCOM_API','extract_eps');
-    eps_ve(i) = calllib('SYNCOM_API','extract_eps_ve');
-    eps_vp(i) = calllib('SYNCOM_API','extract_eps_vp');
+    if (err == 0)
+    err = calllib('SynCOM_API','SynCOM', sigma(i), dt(i));
+    eps(i) = calllib('SynCOM_API','extract_eps');
+    eps_ve(i) = calllib('SynCOM_API','extract_eps_ve');
+    eps_vp(i) = calllib('SynCOM_API','extract_eps_vp');
+    else
+        unloadlibrary('SynCOM_API');
+        err('Error detected. Check SynCOM_Log.txt for details.!');
+    end
 end
 
-%% Unload library.
-unloadlibrary('SYNCOM_API');
+%% Close the application and unload library.
+calllib('SynCOM_API','close_app');
+unloadlibrary('SynCOM_API');
 
 
 
