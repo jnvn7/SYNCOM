@@ -17,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 project(SYNCOM)
 
 # Compile dynamic linked library or executables
-set(SYNCOM_API 1)
+set(SYNCOM_API 0)
 	
 # Set include library path
 include_directories("${PROJECT_SOURCE_DIR}/include")
@@ -46,6 +46,7 @@ else()
 		src/strainSolver.cpp
 		src/stressSolver.cpp
 		src/SYNCOM.cpp
+		src/SYNCOM.rc
 		include/rapidxml-1.13/rapidxml_print.hpp
 		include/rapidxml-1.13/rapidxml_utils.hpp
 		include/rapidxml-1.13/rapidxml.hpp
