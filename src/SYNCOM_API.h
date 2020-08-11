@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,10 @@ extern "C"
     int DECLDIR initialize(int module, char input_file[]);
    
     // Main solver - Solve for time history of nonlinear stress/strain development.
-    int DECLDIR SYNCOM(double dataIn);
+    int DECLDIR SynCOM(double dataIn, double dt);
+
+    // Simulation completed;
+    int DECLDIR close_app(void);
 
     // Extracts Total Strain(deformation) result (latest time step ).
     double DECLDIR extract_eps(void);

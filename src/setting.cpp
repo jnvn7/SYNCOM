@@ -42,8 +42,7 @@ namespace rope {
             return ErrorCode::SUCCESS;
         }
 
-        if (dt <= 0
-            || limit <= 0
+        if (limit <= 0
             || tol < 0) {
             return ErrorCode::BAD_NUMERICAL_SETTING_INPUT;
         }

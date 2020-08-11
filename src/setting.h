@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ namespace rope {
 
         /// Important: The Setting.xml should be in the same folder as the Applicatiom
         /// SYNCOM.
+        //const  std::string setting_file;
         std::string setting_file;
 
         /// The folder is where the Setting.xml located and the other input files
@@ -82,12 +83,15 @@ namespace rope {
         /// Path to output file for results;
         std::string output_filename;
         
-        /// Path to log file;
+        /// Path to log file and time parameters;
         std::string log_filename;
+        struct tm newtime;
+        __time32_t aclock;
 
         /// Module selection, time and Stress/Strain input data;
         int limit, module;
-        double dt, tol;
+        double tol;
+        std::vector<double> dt;
         std::vector<std::vector<double>> dataIn;
     };
 

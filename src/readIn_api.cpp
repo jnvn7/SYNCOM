@@ -30,8 +30,8 @@ namespace rope {
     {
         // Get the absolute path to *input.xml file and set Output and Log files' location;
         std::string file_name = setting.setting_folder + setting.setting_file;
-        setting.output_filename = setting.setting_folder + "SYNCOM_Ouput";
-        setting.log_filename = setting.setting_folder + "SYNCOM_Log.txt";
+        setting.output_filename = setting.setting_folder + "SynCOM_Ouput";
+        setting.log_filename = setting.setting_folder + "SynCOM_Log.txt";
         
         ////////////////////////////////////////////////////////////////////////////
         // Setting file.
@@ -64,38 +64,7 @@ namespace rope {
         root_node = set_doc.first_node("settings");
         if (root_node == 0) 
             return ErrorCode::SETTING_FILE_NO_SETTING_NODE; 
-       
-  /*      ////////////////////////////////////////////////////////////////////////////
-        // Check Data (stress or strain) input file.
-        ////////////////////////////////////////////////////////////////////////////
-        // Get the data input file.
-        xml_node<>* child_node = root_node->first_node("data_input_file");
-        if (child_node == 0)
-            return ErrorCode::SETTING_FILE_NO_INPUT_DATA_FILE;
 
-        // Check whether the file exists.
-        std::string relative_path = child_node->value();
-        setting.input_data_path = setting.setting_folder + relative_path;
-
-        flag = check_file_existence(setting.input_data_path);
-        if (flag) return ErrorCode::INPUT_DATA_FILE_NONEXISTENT;
-
-        size_t work_folder_index = setting.input_data_path.find_last_of("/\\");
-        setting.work_folder = setting.input_data_path.substr(0, work_folder_index + 1); 
-
-        ////////////////////////////////////////////////////////////////////////////
-        // Check Module Selection and Material Properties Input Data.
-        ////////////////////////////////////////////////////////////////////////////
-        // Module selection;
-        child_node = root_node->first_node("module");
-        if (child_node == 0)
-            return ErrorCode::SETTING_FILE_NO_MODULE_SELECTION;
-
-        if (!is_integer(child_node->value()))
-            return ErrorCode::SETTING_FILE_BAD_MODULE_SELECTION;
-        
-        setting.module = stoi(child_node->value());
-  */
         ////////////////////////////////////////////////////////////////////////////
         // Check Material Properties Input Data.
         ////////////////////////////////////////////////////////////////////////////
@@ -211,7 +180,6 @@ namespace rope {
         if (child_node == 0)
             return ErrorCode::SETTING_FILE_NO_MATERIAL_PROPERTIES;
 
-        names.push_back("dt");
         names.push_back("limit");
         names.push_back("tol");
 
@@ -223,30 +191,10 @@ namespace rope {
                 return ErrorCode::SETTING_FILE_NAN_MATERIAL_PROPERTIES;
         }
 
-        setting.dt = stod(child_node->first_node("dt")->value());
-
         setting.limit = stoi(child_node->first_node("limit")->value());
 
         setting.tol = stod(child_node->first_node("tol")->value()); 
-    
- /*       ////////////////////////////////////////////////////////////////////////////
-        // Read input stress (strain) data from provided file.
-        ////////////////////////////////////////////////////////////////////////////
-        flag = readInput(setting.dataIn, setting.input_data_path, 1);
 
-        switch (flag) {
-        case 1: 
-            return ErrorCode::FAIL_TO_OPEN_INPUT_FILE;
-            break;
-        case 2:
-            case 3: 
-                return ErrorCode::WRONG_INPUT_FILE_FORMAT;
-                break;
-        case 4: 
-            return ErrorCode::NAN_INPUT_DATA;
-            break;
-        }
-*/
         return ErrorCode::SUCCESS;
     }
 

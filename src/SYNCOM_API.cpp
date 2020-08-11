@@ -57,27 +57,27 @@ int DECLDIR initialize(int module, char input_file[]) {
 
     // Print copy_right;
     print_copyright(setting.log_filename);
-    print_message(setting.log_filename, "  Reading Setting.xml ...\n");
+    print_message(setting, "  Reading Setting.xml ...\n");
 
     // Read inputs;
     if (errCodes != ErrorCode::SUCCESS)
     {
-        print_log(setting.log_filename, errCodes, errorOut);
+        print_log(setting, errCodes, errorOut);
         return 1;
     }
     else {
-        print_message(setting.log_filename, "   .....Successful\n\n");
+        print_message(setting, "   .....Successful\n\n");
     }
 
-    print_message(setting.log_filename, "  Validating input data...\n");
+    print_message(setting, "  Validating input data...\n");
     errCodes = setting.validate();
     if (errCodes != ErrorCode::SUCCESS)
     {
-        print_log(setting.log_filename, errCodes, errorOut);
+        print_log(setting, errCodes, errorOut);
         return 1;
     }
     else {
-        print_message(setting.log_filename, "   .....Successful\n\n");
+        print_message(setting, "   .....Successful\n\n");
     }
 
     // Initialization of output instance;
@@ -88,7 +88,7 @@ int DECLDIR initialize(int module, char input_file[]) {
     }
 
     /// Starts simulation;
-    print_message(setting.log_filename, "  Simulation can start...\n");
+    print_message(setting, "  Computation starts...\n");
     return 0;
  
 } // End of initialize func.
@@ -96,25 +96,33 @@ int DECLDIR initialize(int module, char input_file[]) {
 ////////////////////////////////////////////////////////////////////////////////
 /// Perform the simulation.
 ////////////////////////////////////////////////////////////////////////////////
-int DECLDIR SYNCOM(double dataIn)
+int DECLDIR SynCOM(double dataIn, double dt)
 {
     if (setting.module == 0) 
         // Perform the simulation
-        errCodes = strainOutput.syncom_solver(setting, dataIn);
+        errCodes = strainOutput.syncom_solver(setting, dataIn, dt);
     else 
         // Perform the simulation
-        errCodes = stressOutput.syncom_solver(setting, dataIn);
+        errCodes = stressOutput.syncom_solver(setting, dataIn, dt);
 
     /// Check simulation end status.
     if (errCodes != ErrorCode::SUCCESS)
     {
-        print_log(setting.log_filename, errCodes, errorOut);
+        print_log(setting, errCodes, errorOut);
         return 1;
     }
 
     return 0;
 
 } // End of SYNCOM func.
+
+////////////////////////////////////////////////////////////////////////////////
+/// End simulation.
+////////////////////////////////////////////////////////////////////////////////
+int DECLDIR close_app(void) {
+    print_message(setting, "   .....Computation completed!\n");
+    return 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Extracts Stress || Strain (deformation) results.

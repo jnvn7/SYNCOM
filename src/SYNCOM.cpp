@@ -30,30 +30,15 @@ using namespace std::chrono;
 using namespace rope;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print description on the screen.
+/// Check the generated errors. Close the application window if an error is catched.
 ////////////////////////////////////////////////////////////////////////////////
-void print_copyright(void)
-{
-    cout << endl << endl;
-    cout << "------------------------------------------------------------------"
-        "--------------" << endl << endl;
-    cout << "           A Nonlinear Synthetic Constitutive Modeling Tool\n";
-    fprintf(stdout, " %s Version 1.0     \n", "                         SYNCOM");
-    cout << "                  Copyright (c) 2020 Jessica Nguyen\n\n";
-    cout << "------------------------------------------------------------------"
-        "--------------" << endl << endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Check the generated erros. Quit if an error is found.
-////////////////////////////////////////////////////////////////////////////////
-void check_status(ErrorCode errCodes, ErrorOut errOut)
+void catch_error(ErrorCode errCodes, ErrorOut errOut)
 {
     if (errCodes == ErrorCode::SUCCESS || errCodes == ErrorCode::SIMULATION_COMPLETED) {
         cout << "    ... " + errOut.message(errCodes) << endl << endl;
     } 
     else {
-        cout << "  ... Unseccessful: " + errOut.message(errCodes) << endl << endl;
+        cout << "  ...Error: " + errOut.message(errCodes) << endl << endl;
 
         char usr_input[2];
         printf("\n\n Exit Application? (y/n) \n\n");
@@ -62,16 +47,6 @@ void check_status(ErrorCode errCodes, ErrorOut errOut)
 
         if (strcmp(usr_input, "y") == 0) exit(1);
     }   
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// End of Simulation.
-////////////////////////////////////////////////////////////////////////////////
-void end_simu()
-{
-    std::ios_base::sync_with_stdio(false);
-    std::cout << "\nPress enter to close the application...\n";
-    std::cin.ignore();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,15 +72,15 @@ int main(int argc, char* argv[])
     Setting setting(argv[0], &mat_props);
 
     /// Initialization of setting from Setting.xml.
-    cout << "  Reading Setting.xml ..." << endl;
+    cout << "Reading Setting.xml ..." << endl;
     errCodes = readInput.readIn_data(setting);
-    check_status(errCodes, errOut);
-    cout << "  Validating input data..." << endl;
+    catch_error(errCodes, errOut);
+    cout << "Validating input data..." << endl;
     errCodes = setting.validate();
-    check_status(errCodes, errOut);
+    catch_error(errCodes, errOut);
   
     /// Starts simulation;
-    cout << "  Simulation starts..." << endl;
+    cout << "Simulation starts..." << endl;
 
     if (setting.module == 0) {
         // Initialization of output instance;
@@ -128,7 +103,7 @@ int main(int argc, char* argv[])
         print_mod2(stressOutput, setting);
     }
 
-    check_status(errCodes, errOut);
+    catch_error(errCodes, errOut);
 
     /// Stopping time and duration;
     auto stop = high_resolution_clock::now();

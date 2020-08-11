@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,8 +35,12 @@ namespace rope {
     void print_mod1(strainSolver& strainSolver, Setting& setting);
     void print_mod2(stressSolver& stressSolver, Setting& setting);
 
-    /// NEED FIXING - Write log file.
-    int print_log(string file_name, ErrorCode errCodes, ErrorOut errOut);
+    /// Write log file.
+    int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut);
+
+    /// Print to screen
+    void print_copyright(void);
+    void end_simu(void);
 
 } // End of namespace rope.
 

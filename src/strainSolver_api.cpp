@@ -37,7 +37,7 @@ namespace rope {
     /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void strainSolver::calCoeffs(Setting& setting, double sigma) {
+    void strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
 
         /// Calculate a0, g0, g1, g2, Ep, np, H_vp;
         a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
@@ -70,16 +70,16 @@ namespace rope {
         }
 
         /// Calculates dPsy;
-        dPsy = 1 / a0 * setting.dt;
+        dPsy = 1 / a0 * dt;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     /// Integration of the incremental viscoplastic deformation using quadratic
     ///  Simpson's Rule;
     //////////////////////////////////////////////////////////////////////////////
-    void strainSolver::integrateSR(Setting& setting, double sigma) {
+    void strainSolver::integrateSR(Setting& setting, double sigma, double dt) {
         eps_vp_inc = (sigma - setting.material_props->sigma_yield0) / 
-                    np * exp(-H_vp / np * te) * setting.dt;
+                    np * exp(-H_vp / np * te) * dt;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -99,10 +99,14 @@ namespace rope {
     /// SYNCOM - Module 1: Evaluates time history of material behaviors. 
     /// Input: applying stress. Output: time history of strain (deformation).
     //////////////////////////////////////////////////////////////////////////////
-    ErrorCode strainSolver::syncom_solver(Setting& setting, double dataIn) {
+    ErrorCode strainSolver::syncom_solver(Setting& setting, double dataIn, double dt) {
+
+        // Check if dt is negative;
+        if (dt <= 0)
+            return ErrorCode::BAD_DT_INPUT;
 
         /// Calculates instantaneous value for each coefficient;
-        calCoeffs(setting, dataIn);
+        calCoeffs(setting, dataIn, dt);
         
         /// Viscoelastic strain;
         sumDn1 = 0; sumDn2 = 0;
@@ -130,8 +134,8 @@ namespace rope {
 
         // Updates eps_vp_inc;
         if ((dataIn - sigma_yield) > setting.tol) {
-            te = te + setting.dt;
-            integrateSR(setting, dataIn);
+            te = te + dt;
+            integrateSR(setting, dataIn, dt);
         }
         else {
             eps_vp_inc = 0;
@@ -150,7 +154,7 @@ namespace rope {
             }
             te = 0;
         }
-        simTime = simTime + setting.dt;
+        simTime = simTime + dt;
         sigma_In = dataIn;
 
         // Update previous time step variables;

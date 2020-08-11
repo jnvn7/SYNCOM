@@ -44,7 +44,7 @@ namespace rope {
     /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void stressSolver::calCoeffs(Setting& setting, double sigma) {
+    void stressSolver::calCoeffs(Setting& setting, double sigma, double dt) {
 
         /// Reset values of a0, g0, g1, g2, Ep, np, H_vp, and their derivatives;
         a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
@@ -109,9 +109,9 @@ namespace rope {
         }
 
         /// Calculates dPsy;
-        dPsy = 1 / a0 * setting.dt;
-        d2Psy = -pow(a0, -2) * da0 * setting.dt;
-        d3Psy = (2*pow(a0, -3)*da0 - pow(a0, -2)*d2a0) * da0 * setting.dt;
+        dPsy = 1 / a0 * dt;
+        d2Psy = -pow(a0, -2) * da0 * dt;
+        d3Psy = (2*pow(a0, -3)*da0 - pow(a0, -2)*d2a0) * da0 * dt;
 
         /// Calculates dnpm1;
         dnpm1 = -pow(np, -2) * dnp;
@@ -123,7 +123,7 @@ namespace rope {
     ///////////////////////////////////////////////////////////////////////////////
     /// Calculates function's derivatives for Newton-Raphson method;
     ///////////////////////////////////////////////////////////////////////////////
-    void stressSolver::calDFunc(int mode, Setting& setting, double sigma) {
+    void stressSolver::calDFunc(int mode, Setting& setting, double sigma, double dt) {
 
         // Prepares summation terms for construction of Visco-Elastic function;
         sumDn1 = 0; sumDn2 = 0; sumDn3 = 0; sumDn4 = 0;
@@ -146,7 +146,7 @@ namespace rope {
             // SumDn4
             dExp2 = d2Psy * exp(-setting.material_props->lamdaN[i] * dPsy) / dPsy +
                 (1 - exp(-setting.material_props->lamdaN[i] * dPsy)) /
-                setting.material_props->lamdaN[i] / setting.dt * da0;
+                setting.material_props->lamdaN[i] / dt * da0;
             sumDn4 += setting.material_props->Dn[i] * dExp2;
         }
        
@@ -169,17 +169,17 @@ namespace rope {
 
         // Calculates dCd term(Visco-Plastic model);
         if (mode != 0) {
-            if (te == setting.dt) {
+            if (te == dt) {
                 dCtemp = 1 / Ep + sigma * dEpm1 + 
-                            setting.dt * (1 / np * Exp3 + sigma * 
+                            dt * (1 / np * Exp3 + sigma * 
                                     dnpm1 * Exp3 + sigma * 1 / np * dExp3) - 
-                            setting.dt * setting.material_props->sigma_yield0 * 
+                            dt * setting.material_props->sigma_yield0 * 
                             (dnpm1 * Exp3 + 1 / np * dExp3);
             }
             else {
-                dCtemp = setting.dt * (1 / np * Exp3 + sigma * 
+                dCtemp = dt * (1 / np * Exp3 + sigma * 
                             dnpm1 * Exp3 + sigma * 1 / np * dExp3) -
-                         setting.dt * setting.material_props->sigma_yield0 * 
+                         dt * setting.material_props->sigma_yield0 * 
                          (dnpm1 * Exp3 + 1 / np * dExp3);
             }
         }
@@ -216,7 +216,7 @@ namespace rope {
             /// VISCO-ELASTIC MODEL ONLY;
             ////////////////////////////////////////////////////////////////////
 
-            if (te == 0 || (setting.dataIn[i - 1][0] - setting.dataIn[i][0]) > setting.tol) {
+            if (te == 0 || (setting.dataIn[i - 1][1] - setting.dataIn[i][1]) > setting.tol) {
                 err = 1; iter = 1; mode = 0;
 
                 // Guesses initial value of stress;
@@ -231,11 +231,11 @@ namespace rope {
                 while (abs(err) >= setting.tol && iter < setting.limit) {
 
                     /// Calculates instantaneous value for each coefficient;
-                    calCoeffs(setting, stemp);
+                    calCoeffs(setting, stemp, setting.dt[i]);
                     
                     // Updates the function (Func) and its derivative (DFunc);
-                    calDFunc(mode, setting, stemp);
-                    Func = setting.dataIn[i][0] - Atemp * stemp + Btemp - eps_vp[i - 1];
+                    calDFunc(mode, setting, stemp, setting.dt[i]);
+                    Func = setting.dataIn[i][1] - Atemp * stemp + Btemp - eps_vp[i - 1];
                    
                     // Calculates the new sigma values;
                     stemp_new = stemp - Func / DFunc;
@@ -269,11 +269,11 @@ namespace rope {
             ///////////////////////////////////////////////////////////////////////////////////
 
             if ((stemp_new - sigma_yield > 1e-6 || iter >= setting.limit)
-                && (setting.dataIn[i][0] - epsim1) >= setting.tol) {
+                && (setting.dataIn[i][1] - epsim1) >= setting.tol) {
 
                 // Resets conditional variables;
                 err = 1; iter = 1; mode = 1;
-                te = te + setting.dt;
+                te = te + setting.dt[i];
 
                 // Guesses initial value of stress;
                 if (i == 1)
@@ -287,19 +287,19 @@ namespace rope {
                 while (abs(err) >= setting.tol && iter < setting.limit) {
 
                     /// Calculates instantaneous value for each coefficient;
-                    calCoeffs(setting, stemp);
+                    calCoeffs(setting, stemp, setting.dt[i]);
 
                     // Updates visco-plastic strain;
-                    if (te == setting.dt)
+                    if (te == setting.dt[i])
                         eps_vp[i] = stemp / Ep + (stemp - setting.material_props->sigma_yield0) /
-                        np * exp(-H_vp / np * te) * setting.dt;
+                        np * exp(-H_vp / np * te) * setting.dt[i];
                     else
                         eps_vp[i] = eps_vp[i - 1] + (stemp - setting.material_props->sigma_yield0) /
-                        np * exp(-H_vp / np * te) * setting.dt;
+                        np * exp(-H_vp / np * te) * setting.dt[i];
 
                     // Updates the function (Func) and its derivative (DFunc);
-                    calDFunc(mode, setting, stemp);
-                    Func = setting.dataIn[i][0] - Atemp * stemp + Btemp - eps_vp[i];
+                    calDFunc(mode, setting, stemp, setting.dt[i]);
+                    Func = setting.dataIn[i][1] - Atemp * stemp + Btemp - eps_vp[i];
 
                     // Calculates the new sigma values;
                     stemp_new = stemp - Func / DFunc;
@@ -332,19 +332,19 @@ namespace rope {
 
             /// Update sigma_yield, the effective time, and simulation time;
             if ((sigmaim1 - sigma_cal[i]) > 
-                setting.tol && te > setting.dt) {
+                setting.tol && te > setting.dt[i]) {
                 if (sigmaim1 > sigma_yield) {
                     sigma_yield = sigmaim1;
                 }
                 te = 0;
             }
             
-            if ((sigma_yield - sigma_cal[i]) > setting.tol && te == setting.dt) {
+            if ((sigma_yield - sigma_cal[i]) > setting.tol && te == setting.dt[i]) {
                 te = 0;
             }
 
-            simTime[i] = simTime[i - 1] + setting.dt;
-            eps_ve[i] = setting.dataIn[i][0] - eps_vp[i];
+            simTime[i] = simTime[i - 1] + setting.dt[i];
+            eps_ve[i] = setting.dataIn[i][1] - eps_vp[i];
 
         } // End of For Loop;
 

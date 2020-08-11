@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

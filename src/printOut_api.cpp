@@ -21,11 +21,17 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     /// Print log file for error check.
     ////////////////////////////////////////////////////////////////////////////////
-    int print_log(string& filename, ErrorCode errCodes, ErrorOut errOut)
+    int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut)
     {
+        char buffer[32];
+        _time32(&setting.aclock);   // Get time in seconds.
+        _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
+
+        asctime_s(buffer, 32, &setting.newtime);
+
         std::ofstream log_file;
-        log_file.open(filename, std::ofstream::app);
-        log_file << "  " << errOut.message(errCodes) << endl << endl;
+        log_file.open(setting.log_filename, std::ofstream::app);
+        log_file << "  " << buffer << errOut.message(errCodes) << endl << endl;
         log_file.close();
         return 0;
     }
@@ -33,11 +39,17 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////7
     /// Write log file for error check.
     ////////////////////////////////////////////////////////////////////////////////
-    int print_message(string& filename, string message)
+    int print_message(Setting &setting, string message)
     {
+        char buffer[32];
+        _time32(&setting.aclock);   // Get time in seconds.
+        _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
+
+        asctime_s(buffer, 32, &setting.newtime);
+
         std::ofstream log_file;
-        log_file.open(filename, std::ofstream::app);
-        log_file << message << endl << endl;
+        log_file.open(setting.log_filename, std::ofstream::app);
+        log_file << buffer << message << endl << endl;
         log_file.close();
         return 0;
     }
@@ -48,15 +60,14 @@ namespace rope {
     void print_copyright(string& filename)
     {
         string message = "---------------------------------------------------------"
-            "--------------\n"
-            "           A Nonlinear Synthetic Constitutive Modeling Tool\n"
+            "------------\n"
+            "           A Nonlinear Synthetic Constitutive Modeling Tool \n"
             "                         SYNCOM Version 1.0                 \n"
-            "                  Copyright (c) 2020 Jessica Nguyen"
-            "------------------------------------------------------------------"
-            "--------------";
+            "                  Copyright (c) 2020 Jessica Nguyen         \n"
+            "---------------------------------------------------------------------\n";
 
         ofstream log_file;
-        log_file.open(filename, std::ofstream::app);
+        log_file.open(filename, std::ofstream::trunc);
         log_file << message << endl << endl;
         log_file.close();
     }

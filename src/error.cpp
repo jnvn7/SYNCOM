@@ -48,6 +48,9 @@ namespace rope {
         case ErrorCode::BAD_NUMERICAL_SETTING_INPUT:
             return ("Check numerical setting input.");
 
+        case ErrorCode::BAD_DT_INPUT:
+            return ("Negative dt detected.");
+
         case ErrorCode::SETTING_FILE_NO_INPUT_DATA_FILE:
             return ("Cant find input data (stress or strain) file.");
 
@@ -83,10 +86,10 @@ namespace rope {
 
         case ErrorCode::NAN_OUTPUT_VISCO_ELASTIC_PLASTIC_MODEL:
             return ("Visco-elastic and Visco-plastic Solver encounters NaN output.");
-
+        
         case ErrorCode::NO_CONVERGED_SOLUTION:
             return ("Can't find converged solution.");
-            
+
         case ErrorCode::SIMULATION_COMPLETED:
             return ("Simulation complete.");
         }

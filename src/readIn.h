@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ namespace rope {
     private:
         
         // Used when reading main input data file.
-        int readInput(std::vector<std::vector<double>>& dataIn, const std::string data_file_name, const int header_rows);
+        int readInput(std::vector<std::vector<double>>& dataIn, 
+                            const std::string data_file_name, const int header_rows);
         int check_file_existence(const std::string file_name);
         int check_availability(const rapidxml::xml_node<>* node,
             const std::vector<std::string>& names);

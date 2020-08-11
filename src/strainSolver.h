@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ namespace rope {
         vector<double> qn;
         vector<double> qnim1;
 
-        void calCoeffs(Setting& setting, double sigma);
-        void integrateSR(Setting& setting, double sigma);
+        void calCoeffs(Setting& setting, double sigma, double dt);
+        void integrateSR(Setting& setting, double sigma, double dt);
         void calQn(Setting& setting, double sigma);
 
     public:

@@ -1,6 +1,6 @@
 // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
-// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+// Copyright (c) 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,14 +39,14 @@ namespace rope {
 
         double sigma_yield, simTime, eps, eps_ve, eps_vp, sigma_In;
 
-        void calCoeffs(Setting& setting, double sigma);
-        void integrateSR(Setting& setting, double sigma);
+        void calCoeffs(Setting& setting, double sigma, double dt);
+        void integrateSR(Setting& setting, double sigma, double dt);
         void calQn(Setting& setting, double sigma);
 
     public: 
 
         strainSolver(Setting& setting);
-        ErrorCode syncom_solver(Setting& setting, double dataIn);
+        ErrorCode syncom_solver(Setting& setting, double dataIn, double dt);
         double get_sigma_yield(void) { return sigma_yield; };
         double get_simTime(void) { return simTime; };
         double get_sigma(void) { return sigma_In; };

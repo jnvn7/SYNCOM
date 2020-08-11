@@ -40,7 +40,7 @@ namespace rope {
     /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void strainSolver::calCoeffs(Setting& setting, double sigma) {
+    void strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
 
         /// Calculate a0, g0, g1, g2, Ep, np, H_vp;
         a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
@@ -73,16 +73,16 @@ namespace rope {
         }
 
         /// Calculates dPsy;
-        dPsy = 1 / a0 * setting.dt;
+        dPsy = 1 / a0 * dt;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     /// Integration of the incremental viscoplastic deformation using quadratic
     ///  Simpson's Rule;
     //////////////////////////////////////////////////////////////////////////////
-    void strainSolver::integrateSR(Setting& setting, double sigma) {
+    void strainSolver::integrateSR(Setting& setting, double sigma, double dt) {
         eps_vp_inc = (sigma - setting.material_props->sigma_yield0) / 
-                    np * exp(-H_vp / np * te) * setting.dt;
+                    np * exp(-H_vp / np * te) * dt;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ namespace rope {
         for (int i = 1; i < setting.dataIn.size(); i++) {
 
             /// Calculates instantaneous value for each coefficient;
-            calCoeffs(setting, setting.dataIn[i][0]);
+            calCoeffs(setting, setting.dataIn[i][1], setting.dt[i]);
             
             /// Viscoelastic strain;
             sumDn1 = 0; sumDn2 = 0;
@@ -124,19 +124,19 @@ namespace rope {
                         g1 * g2 * sumDn2;
             Btemp = g1 * sumDn1 - g1 * g2im1 * sigmaim1 * sumDn2;
 
-            eps_ve[i] = Atemp * setting.dataIn[i][0] - Btemp;
+            eps_ve[i] = Atemp * setting.dataIn[i][1] - Btemp;
 
             /// Viscoplastic strain;
-            if ((setting.dataIn[i][0] - sigma_yield) > 
+            if ((setting.dataIn[i][1] - sigma_yield) > 
                     setting.tol && te == 0) 
-                eps_vp_temp = setting.dataIn[i][0] / Ep - eps_vp[i-1];  
+                eps_vp_temp = setting.dataIn[i][1] / Ep - eps_vp[i-1];  
             else 
                 eps_vp_temp = 0;
 
             // Updates eps_vp_inc;
-            if ((setting.dataIn[i][0] - sigma_yield) > setting.tol) {
-                te = te + setting.dt;
-                integrateSR(setting, setting.dataIn[i][0]);    
+            if ((setting.dataIn[i][1] - sigma_yield) > setting.tol) {
+                te = te + setting.dt[i];
+                integrateSR(setting, setting.dataIn[i][1], setting.dt[i]);    
             }
             else {
                 eps_vp_inc = 0;
@@ -149,19 +149,19 @@ namespace rope {
             eps[i] = eps_ve[i] + eps_vp[i];
 
             /// Update sigma_yield, the effective time, and simulation time;
-            if ((sigmaim1 - setting.dataIn[i][0]) >
+            if ((sigmaim1 - setting.dataIn[i][1]) >
                 setting.tol && te != 0) {
                 if (sigmaim1 > sigma_yield) {
                     sigma_yield = sigmaim1;
                 }
                 te = 0;
             }
-            simTime[i] = simTime[i-1] + setting.dt;
+            simTime[i] = simTime[i-1] + setting.dt[i];
 
             // Update previous time step variables;
-            calQn(setting, setting.dataIn[i][0]);  // updates qnim1
+            calQn(setting, setting.dataIn[i][1]);  // updates qnim1
             g2im1 = g2;
-            sigmaim1 = setting.dataIn[i][0];   
+            sigmaim1 = setting.dataIn[i][1];   
 
             if (isnan(eps[i]))
                 return ErrorCode::NAN_OUTPUT; 

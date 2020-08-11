@@ -14,39 +14,39 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # set the project name
-project(SYNCOM)
+project(SynCOM)
 
 # Compile dynamic linked library or executables
-set(SYNCOM_API 0)
+set(SynCOM_API 0)
 	
 # Set include library path
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 # Add the excutable from the src folder
-if (SYNCOM_API)
-	add_library(SYNCOM_API SHARED
+if (SynCOM_API)
+	add_library(SynCOM_API SHARED
 		src/error.cpp
 		src/printOut_api.cpp
 		src/readIn_api.cpp
 		src/setting.cpp
 		src/strainSolver_api.cpp
 		src/stressSolver_api.cpp
-		src/SYNCOM_API.cpp
+		src/SynCOM_API.cpp
 		include/rapidxml-1.13/rapidxml_print.hpp
 		include/rapidxml-1.13/rapidxml_utils.hpp
 		include/rapidxml-1.13/rapidxml.hpp
 		)
 # Add the excutable from the src folder		
 else()
-	add_executable(SYNCOM 
+	add_executable(SynCOM 
 		src/error.cpp
 		src/printOut.cpp
 		src/readIn.cpp
 		src/setting.cpp
 		src/strainSolver.cpp
 		src/stressSolver.cpp
-		src/SYNCOM.cpp
-		src/SYNCOM.rc
+		src/SynCOM.cpp
+		src/SynCOM.rc
 		include/rapidxml-1.13/rapidxml_print.hpp
 		include/rapidxml-1.13/rapidxml_utils.hpp
 		include/rapidxml-1.13/rapidxml.hpp

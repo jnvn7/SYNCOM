@@ -208,7 +208,6 @@ namespace rope {
         if (child_node == 0)
             return ErrorCode::SETTING_FILE_NO_MATERIAL_PROPERTIES;
 
-        names.push_back("dt");
         names.push_back("limit");
         names.push_back("tol");
 
@@ -220,14 +219,12 @@ namespace rope {
                 return ErrorCode::SETTING_FILE_NAN_MATERIAL_PROPERTIES;
         }
 
-        setting.dt = stod(child_node->first_node("dt")->value());
-
         setting.limit = stoi(child_node->first_node("limit")->value());
 
         setting.tol = stod(child_node->first_node("tol")->value()); 
     
         ////////////////////////////////////////////////////////////////////////////
-        // Read input stress (strain) data from provided file.
+        // Read input stress (strain) and time data from the specified file.
         ////////////////////////////////////////////////////////////////////////////
         flag = readInput(setting.dataIn, setting.input_data_path, 1);
 
@@ -244,16 +241,24 @@ namespace rope {
             break;
         }
 
+        // Extract time data and create dt vector;
+        setting.dt.resize(setting.dataIn.size());
+        setting.dt[0] = 0;
+        for (size_t i = 1; i < setting.dataIn.size(); i++) {
+            setting.dt[i] = setting.dataIn[i][0] - setting.dataIn[i-1][0];
+        }
+
         return ErrorCode::SUCCESS;
     }
     ////////////////////////////////////////////////////////////////////////////////
     /// Read data matrix with header lines for stress/strain users' input data.
     ////////////////////////////////////////////////////////////////////////////////
-    int ReadIn::readInput(std::vector<std::vector<double>>& dataIn, const std::string data_file_name, const int header_rows)
+    int ReadIn::readInput(std::vector<std::vector<double>>& dataIn, 
+                            const std::string data_file_name, const int header_rows)
     {
         string line, cell;
         int i_line = 0, i_cell;
-        int expected_cols = 1;
+        int expected_cols = 2;
         ifstream data_file(data_file_name);
 
         if (!data_file.good() || (data_file_name.back() == '/'

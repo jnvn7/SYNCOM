@@ -41,7 +41,7 @@ namespace rope {
     /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void stressSolver::calCoeffs(Setting& setting, double sigma) {
+    void stressSolver::calCoeffs(Setting& setting, double sigma, double dt) {
 
         /// Reset values of a0, g0, g1, g2, Ep, np, H_vp, and their derivatives;
         a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
@@ -106,9 +106,9 @@ namespace rope {
         }
 
         /// Calculates dPsy;
-        dPsy = 1 / a0 * setting.dt;
-        d2Psy = -pow(a0, -2) * da0 * setting.dt;
-        d3Psy = (2*pow(a0, -3)*da0 - pow(a0, -2)*d2a0) * da0 * setting.dt;
+        dPsy = 1 / a0 * dt;
+        d2Psy = -pow(a0, -2) * da0 * dt;
+        d3Psy = (2*pow(a0, -3)*da0 - pow(a0, -2)*d2a0) * da0 * dt;
 
         /// Calculates dnpm1;
         dnpm1 = -pow(np, -2) * dnp;
@@ -120,7 +120,7 @@ namespace rope {
     ///////////////////////////////////////////////////////////////////////////////
     /// Calculates function's derivatives for Newton-Raphson method;
     ///////////////////////////////////////////////////////////////////////////////
-    void stressSolver::calDFunc(int mode, Setting& setting, double sigma) {
+    void stressSolver::calDFunc(int mode, Setting& setting, double sigma, double dt) {
 
         // Prepares summation terms for construction of Visco-Elastic function;
         sumDn1 = 0; sumDn2 = 0; sumDn3 = 0; sumDn4 = 0;
@@ -143,7 +143,7 @@ namespace rope {
             // SumDn4
             dExp2 = d2Psy * exp(-setting.material_props->lamdaN[i] * dPsy) / dPsy +
                 (1 - exp(-setting.material_props->lamdaN[i] * dPsy)) /
-                setting.material_props->lamdaN[i] / setting.dt * da0;
+                setting.material_props->lamdaN[i] / dt * da0;
             sumDn4 += setting.material_props->Dn[i] * dExp2;
         }
        
@@ -166,17 +166,17 @@ namespace rope {
 
         // Calculates dCd term(Visco-Plastic model);
         if (mode != 0) {
-            if (te == setting.dt) {
+            if (te == dt) {
                 dCtemp = 1 / Ep + sigma * dEpm1 + 
-                            setting.dt * (1 / np * Exp3 + sigma * 
+                            dt * (1 / np * Exp3 + sigma * 
                                     dnpm1 * Exp3 + sigma * 1 / np * dExp3) - 
-                            setting.dt * setting.material_props->sigma_yield0 * 
+                            dt * setting.material_props->sigma_yield0 * 
                             (dnpm1 * Exp3 + 1 / np * dExp3);
             }
             else {
-                dCtemp = setting.dt * (1 / np * Exp3 + sigma * 
+                dCtemp = dt * (1 / np * Exp3 + sigma * 
                             dnpm1 * Exp3 + sigma * 1 / np * dExp3) -
-                         setting.dt * setting.material_props->sigma_yield0 * 
+                         dt * setting.material_props->sigma_yield0 * 
                          (dnpm1 * Exp3 + 1 / np * dExp3);
             }
         }
@@ -205,11 +205,14 @@ namespace rope {
     /// SYNCOM - Module 2: Evaluates time history of material behaviors. 
     /// Input: time history of strain (deformation). Output: applying stress.
     //////////////////////////////////////////////////////////////////////////////
-    ErrorCode stressSolver::syncom_solver(Setting& setting, double dataIn) {
+    ErrorCode stressSolver::syncom_solver(Setting& setting, double dataIn, double dt) {
 
         /////////////////////////////////////////////////////////////////////
         /// VISCO-ELASTIC MODEL ONLY;
         ////////////////////////////////////////////////////////////////////
+        // Check if dt is negative;
+        if (dt <= 0)
+            return ErrorCode::BAD_DT_INPUT;
 
         if (te == 0 || (sigmaim1 - dataIn) > setting.tol) {
             err = 1; iter = 1; mode = 0;
@@ -225,10 +228,10 @@ namespace rope {
             while (abs(err) >= setting.tol && iter < setting.limit) {
 
                 /// Calculates instantaneous value for each coefficient;
-                calCoeffs(setting, stemp);
+                calCoeffs(setting, stemp, dt);
 
                 // Updates the function (Func) and its derivative (DFunc);
-                calDFunc(mode, setting, stemp);
+                calDFunc(mode, setting, stemp, dt);
                 Func = dataIn - Atemp * stemp + Btemp - eps_vp;
 
                 // Calculates the new sigma values;
@@ -267,7 +270,7 @@ namespace rope {
 
             // Resets conditional variables;
             err = 1; iter = 1; mode = 1;
-            te = te + setting.dt;
+            te = te + dt;
 
             // Guesses initial value of stress;
             // Predicts little change in stresses;
@@ -279,18 +282,18 @@ namespace rope {
             while (abs(err) >= setting.tol && iter <= setting.limit) {
                 
                 /// Calculates instantaneous value for each coefficient;
-                calCoeffs(setting, stemp);
+                calCoeffs(setting, stemp, dt);
 
                 // Updates visco-plastic strain;
-                if (te == setting.dt)
+                if (te == dt)
                     eps_vp_temp = stemp / Ep + (stemp - setting.material_props->sigma_yield0) /
-                    np * exp(-H_vp / np * te) * setting.dt;
+                    np * exp(-H_vp / np * te) * dt;
                 else
                     eps_vp_temp = eps_vp + (stemp - setting.material_props->sigma_yield0) /
-                    np * exp(-H_vp / np * te) * setting.dt;
+                    np * exp(-H_vp / np * te) * dt;
 
                 // Updates the function (Func) and its derivative (DFunc);
-                calDFunc(mode, setting, stemp);
+                calDFunc(mode, setting, stemp, dt);
                 Func = dataIn - Atemp * stemp + Btemp - eps_vp_temp;
 
                 // Calculates the new sigma values;
@@ -332,18 +335,18 @@ namespace rope {
 
         /// Update sigma_yield, the effective time, and simulation time;
         if ((sigmaim1 - sigma_cal) >
-            setting.tol && te > setting.dt) {
+            setting.tol && te > dt) {
             if (sigmaim1 > sigma_yield) {
                 sigma_yield = sigmaim1;
             }
             te = 0;
         }
 
-        if ((sigma_yield - sigma_cal) > setting.tol && te == setting.dt) {
+        if ((sigma_yield - sigma_cal) > setting.tol && te == dt) {
             te = 0;
         }
 
-        simTime = simTime + setting.dt;
+        simTime = simTime + dt;
         eps_ve = dataIn - eps_vp;
         eps_In = dataIn;
 

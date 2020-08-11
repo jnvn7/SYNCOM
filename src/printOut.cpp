@@ -33,7 +33,7 @@ namespace rope {
         for (size_t i = 0; i < strainSolver.eps.size(); i++)
         {
             fprintf(output_file, "% .5E % .5E % .5E % .5E % .5E \n",
-                strainSolver.simTime[i], setting.dataIn[i][0], strainSolver.eps[i],
+                strainSolver.simTime[i], setting.dataIn[i][1], strainSolver.eps[i],
                 strainSolver.eps_ve[i], strainSolver.eps_vp[i]);
         }
         fclose(output_file);
@@ -54,7 +54,7 @@ namespace rope {
         for (size_t i = 0; i < stressSolver.sigma_cal.size(); i++)
         {
             fprintf(output_file, "% .5E % .5E % .5E % .5E % .5E \n",
-                stressSolver.simTime[i], stressSolver.sigma_cal[i], setting.dataIn[i][0],
+                stressSolver.simTime[i], stressSolver.sigma_cal[i], setting.dataIn[i][1],
                 stressSolver.eps_ve[i], stressSolver.eps_vp[i]);
         }
         fclose(output_file);
@@ -63,16 +63,44 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     /// Print log file for error check.
     ////////////////////////////////////////////////////////////////////////////////
-    int print_log(string file_name, ErrorCode errCodes, ErrorOut errOut)
+    int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut)
     {
-        //char str[26];
-        //struct tm newtime;
-        //std::ofstream log_file;
-        //log_file.open(file_name, std::ofstream::app);
-        //asctime_s(str, 26, &newtime);
-        //log_file << "  " << errOut.message(errCodes) << endl << endl;
-        //log_file.close();
+        char buffer[32];
+        _time32(&setting.aclock);   // Get time in seconds.
+        _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
+
+        asctime_s(buffer, 32, &setting.newtime);
+
+        std::ofstream log_file;
+        log_file.open(setting.log_filename, std::ofstream::app);
+        log_file << "  " << buffer << errOut.message(errCodes) << endl << endl;
+        log_file.close();
         return 0;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    /// Print description to screen.
+    ////////////////////////////////////////////////////////////////////////////////
+    void print_copyright(void)
+    {
+        cout << endl << endl;
+        cout << "------------------------------------------------------------------"
+            "--------------" << endl << endl;
+        cout << "           A Nonlinear Synthetic Constitutive Modeling Tool\n";
+        fprintf(stdout, " %s Version 1.0     \n", "                         SYNCOM");
+        cout << "                  Copyright (c) 2020 Jessica Nguyen\n\n";
+        cout << "------------------------------------------------------------------"
+            "--------------" << endl << endl;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    /// End of Simulation.
+    ////////////////////////////////////////////////////////////////////////////////
+    void end_simu(void)
+    {
+        std::ios_base::sync_with_stdio(false);
+        std::cout << "\nPress enter to close the application...\n";
+        std::cin.ignore();
     }
 
 } // End of namespace rope.
