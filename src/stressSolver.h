@@ -1,0 +1,70 @@
+// SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
+//
+// Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+////////////////////////////////////////////////////////////////////////////////
+
+
+#ifndef stressSolver_h
+#define stressSolver_h
+
+#include "setting.h"
+#include "error.h"
+#include <math.h>
+#include <iostream>
+
+using namespace std;
+
+namespace rope {
+
+    class stressSolver {
+
+        double a0, g0, g1, g2, Ep, np, H_vp,
+               da0, dg0, dg1, dg2, dEp, dEpm1,  // 1st derivative WRT sigma (applied stress)
+               dnp, dnpm1, dH_vp, d2a0, d2g0,   // 2nd derivative WRT sigma (applied stress)
+               d2g1, d2g2, d2Ep, d2np, d2H_vp;  
+
+        double te, dPsy, d2Psy, d3Psy, Func, DFunc,
+               epsim1, sigmaim1, sigmaim2, g2im1;
+
+        int mode, iter;
+
+        // Temporary variables;
+        double err, stemp, stemp_new, sumDn1, sumDn2, sumDn3, 
+               sumDn4, Exp3, Atemp, Btemp, dAtemp, dBtemp, 
+               dCtemp, dExp1, dExp2, dExp3, eps_vp_temp;
+
+        vector<double> qn;
+        vector<double> qnim1;
+
+        void calCoeffs(Setting& setting, double sigma);
+        void calDFunc(int mode, Setting& setting, double sigma);
+        void calQn(Setting& setting, double sigma);
+
+    public:
+        stressSolver(Setting& setting);
+        ErrorCode syncom_solver(Setting& setting);
+
+        double sigma_yield;
+        vector<double> simTime;
+        vector<double> eps_vp;
+        vector<double> eps_ve;
+        vector<double> sigma_cal;
+    };
+
+} // End of namespace rope.
+
+#endif // stressSolver_h
+#pragma once
+
