@@ -85,8 +85,11 @@ namespace rope {
         
         /// Path to log file and time parameters;
         std::string log_filename;
+
+#ifndef __unix__
         struct tm newtime;
         __time32_t aclock;
+#endif
 
         /// Module selection, time and Stress/Strain input data;
         int limit, module;

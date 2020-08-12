@@ -1,7 +1,7 @@
 <settings>
 <?xml-stylesheet version="1.0" encoding="UTF-8" ?>
 	<module note="0: module 1. Others: module 2">0</module>
-	<data_input_file>inputData/SYNCOM_Input_mod1.txt</data_input_file>
+	<data_input_file>inputData/SynCOM_Input_mod1.txt</data_input_file>
 	<material_props>
     		<sigma_yield0>0.078</sigma_yield0>
     		<MBL>1.0610e+09</MBL>

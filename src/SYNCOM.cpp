@@ -43,8 +43,11 @@ void catch_error(ErrorCode errCodes, ErrorOut errOut)
         char usr_input[2];
         printf("\n\n Exit Application? (y/n) \n\n");
         char s[2];
+#ifndef __unix__
         scanf_s("%s", usr_input, (unsigned)_countof(s));
-
+#else
+        scanf("%s", usr_input);
+#endif
         if (strcmp(usr_input, "y") == 0) exit(1);
     }   
 }

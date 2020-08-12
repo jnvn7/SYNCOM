@@ -21,7 +21,7 @@
 #include "strainSolver_api.h"
 #include "stressSolver_api.h"
 #include "printOut_api.h"
-#include "SYNCOM_API.h"
+#include "SynCOM_API.h"
 #include <chrono>
 #include <string>
 #include <iostream>

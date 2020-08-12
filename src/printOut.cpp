@@ -25,7 +25,13 @@ namespace rope {
 
         FILE* output_file;
         string name_ext = "_mod1.csv";
+
+#ifndef __unix__
         fopen_s(&output_file, (setting.output_filename + name_ext).c_str(), "w");
+#else
+        output_file = fopen((setting.output_filename + name_ext).c_str(), "w");
+#endif
+
         fprintf(output_file, "Time(s)       Stress(in)        Total_Strain(out)    "
                 "   Visco-elastic_Strain    Visco-plastic_Strain \n");
 
@@ -46,7 +52,13 @@ namespace rope {
 
         FILE* output_file;
         string name_ext = "_mod2.csv";
+
+#ifndef __unix__
         fopen_s(&output_file, (setting.output_filename + name_ext).c_str(), "w");
+#else
+        output_file = fopen((setting.output_filename + name_ext).c_str(), "w");
+#endif
+
         fprintf(output_file, "Time(s)       Stress(out)        Total_Strain(in)    "
             "   Visco-elastic_Strain    Visco-plastic_Strain \n");
 
@@ -65,15 +77,23 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut)
     {
+#ifndef __unix__
         char buffer[32];
         _time32(&setting.aclock);   // Get time in seconds.
         _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
 
         asctime_s(buffer, 32, &setting.newtime);
+#endif 
 
         std::ofstream log_file;
         log_file.open(setting.log_filename, std::ofstream::app);
+
+#ifndef __unix__
         log_file << "  " << buffer << errOut.message(errCodes) << endl << endl;
+#else
+        log_file << "  " << errOut.message(errCodes) << endl << endl;
+#endif
+
         log_file.close();
         return 0;
     }

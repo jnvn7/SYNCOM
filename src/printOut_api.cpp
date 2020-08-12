@@ -23,15 +23,22 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut)
     {
+#ifndef __unix__
         char buffer[32];
         _time32(&setting.aclock);   // Get time in seconds.
         _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
 
         asctime_s(buffer, 32, &setting.newtime);
+#endif 
 
         std::ofstream log_file;
         log_file.open(setting.log_filename, std::ofstream::app);
+
+#ifndef __unix__
         log_file << "  " << buffer << errOut.message(errCodes) << endl << endl;
+#else
+        log_file << "  " << errOut.message(errCodes) << endl << endl;
+#endif
         log_file.close();
         return 0;
     }
@@ -41,15 +48,22 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     int print_message(Setting &setting, string message)
     {
+#ifndef __unix__
         char buffer[32];
         _time32(&setting.aclock);   // Get time in seconds.
         _localtime32_s(&setting.newtime, &setting.aclock);   // Convert time to struct tm form.
 
         asctime_s(buffer, 32, &setting.newtime);
+#endif 
 
         std::ofstream log_file;
         log_file.open(setting.log_filename, std::ofstream::app);
+
+#ifndef __unix__
         log_file << buffer << message << endl << endl;
+#else
+        log_file << message << endl << endl;
+#endif
         log_file.close();
         return 0;
     }

@@ -24,6 +24,7 @@
 #include "rapidxml-1.13/rapidxml.hpp"
 #include "rapidxml-1.13/rapidxml_print.hpp"
 #include <vector>
+#include <math.h>
 #include <iostream>
 #include <fstream>
 #include <regex>

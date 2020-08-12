@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Set compiler for unix system
-if(UNIX)
+if(_APPLE_)
 	set(CMAKE_C_COMPILER "gcc")
 	set(CMAKE_CXX_COMPILER "g++")
 endif()
@@ -17,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 project(SynCOM)
 
 # Compile dynamic linked library or executables
-set(SynCOM_API 0)
+set(SynCOM_API 1)
 	
 # Set include library path
 include_directories("${PROJECT_SOURCE_DIR}/include")

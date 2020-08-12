@@ -16,10 +16,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef SYNCOM_API_h
-#define SYNCOM_API_h
+#ifndef SynCOM_API_h
+#define SynCOM_API_h
 
-#ifndef __UNIX__
+#ifndef __unix__
 #define DECLDIR __declspec(dllexport)
 #else
 #define DECLDIR
