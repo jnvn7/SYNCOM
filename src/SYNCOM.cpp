@@ -41,7 +41,7 @@ void catch_error(ErrorCode errCodes, ErrorOut errOut)
         cout << "  ...Error: " + errOut.message(errCodes) << endl << endl;
 
         char usr_input[2];
-        printf("\n\n Exit Application? (y/n) \n\n");
+        printf("\n\n Exit Application? (y) \n\n");
         char s[2];
 #ifndef __unix__
         scanf_s("%s", usr_input, (unsigned)_countof(s));
@@ -98,16 +98,16 @@ int main(int argc, char* argv[])
     else {
         // Initialization of output instance;
         stressSolver stressOutput(setting);
-
+        
         // Perform the simulation
         errCodes = stressOutput.syncom_solver(setting);
 
         // Write results to file;
         print_mod2(stressOutput, setting);
     }
-
+    
     catch_error(errCodes, errOut);
-
+    
     /// Stopping time and duration;
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);

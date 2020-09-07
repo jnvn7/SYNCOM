@@ -30,7 +30,7 @@ namespace rope {
     {
         // Get the absolute path to *input.xml file and set Output and Log files' location;
         std::string file_name = setting.setting_folder + setting.setting_file;
-        setting.output_filename = setting.setting_folder + "SynCOM_Ouput";
+        setting.output_filename = setting.setting_folder + "SynCOM_Output";
         setting.log_filename = setting.setting_folder + "SynCOM_Log.txt";
         
         ////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ namespace rope {
             return ErrorCode::SETTING_FILE_INCOMPLETE_MATERIAL_PROPERTIES;
         else
         {
-            names.erase(names.end()-1);
+            names.erase(names.end() - 1);
             if (!check_is_number(child_node, names))
                 return ErrorCode::SETTING_FILE_NAN_MATERIAL_PROPERTIES;
         }
@@ -97,12 +97,12 @@ namespace rope {
             stod(child_node->first_node("MBL")->value());
 
         setting.material_props->Do =
-            stod(child_node->first_node("Do")->value()); 
-        
+            stod(child_node->first_node("Do")->value());
+
         /// Read in Dn's values;
         std::vector<std::string> DnString;
-        flag = extract_multi_number(child_node->first_node("Dn")->value(), DnString);
-       
+        flag = extract_vector_element(child_node->first_node("Dn")->value(), DnString);
+
         if (DnString.size() <= 0)
             return ErrorCode::SETTING_FILE_BAD_DN_VALUES;
         else
@@ -110,15 +110,22 @@ namespace rope {
             setting.material_props->Dn.resize(DnString.size());
             setting.material_props->lamdaN.resize(DnString.size());
             for (int i = 0; i < DnString.size(); i++) {
-                setting.material_props->Dn[i] = stod(DnString[i]);
-                if (stod(DnString[i]) < 0)
-                    return ErrorCode::BAD_MATERIAL_PROPERTIES_INPUT;
+                if (!is_number(DnString[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->Dn[i] = stod(DnString[i]);
+                    if (stod(DnString[i]) < 0)
+                        return ErrorCode::BAD_MATERIAL_PROPERTIES_INPUT;
 
-                setting.material_props->lamdaN[i] = pow(10,-i);
-                setting.material_props->sumDn += setting.material_props->Dn[i];
+                    setting.material_props->lamdaN[i] = pow(10, -i);
+                    setting.material_props->sumDn += setting.material_props->Dn[i];
+                }
             }
         }
         
+        // Clear parameters;
+        DnString.clear();
+
         /// Read in a0, g0, g1, g2, Ep, np, H's values;
         std::vector<std::string> a0String;
         std::vector<std::string> g0String;
@@ -128,17 +135,33 @@ namespace rope {
         std::vector<std::string> npString;
         std::vector<std::string> HString;
 
-        extract_multi_number(child_node->first_node("a0")->value(), a0String);
-        extract_multi_number(child_node->first_node("g0")->value(), g0String);
-        extract_multi_number(child_node->first_node("g1")->value(), g1String);
-        extract_multi_number(child_node->first_node("g2")->value(), g2String);
-        extract_multi_number(child_node->first_node("Ep")->value(), EpString);
-        extract_multi_number(child_node->first_node("np")->value(), npString);
-        extract_multi_number(child_node->first_node("H")->value(), HString);
+        std::vector<std::string> a0stress_lim;
+        std::vector<std::string> g0stress_lim;
+        std::vector<std::string> g1stress_lim;
+        std::vector<std::string> g2stress_lim;
+        std::vector<std::string> Epstress_lim;
+        std::vector<std::string> npstress_lim;
+        std::vector<std::string> Hstress_lim;
+        
+        extract_vector_element(child_node->first_node("a0")->value(), a0String, a0stress_lim, setting.material_props->step_num[0]);
+        extract_vector_element(child_node->first_node("g0")->value(), g0String, g0stress_lim, setting.material_props->step_num[1]);
+        extract_vector_element(child_node->first_node("g1")->value(), g1String, g1stress_lim, setting.material_props->step_num[2]);
+        extract_vector_element(child_node->first_node("g2")->value(), g2String, g2stress_lim, setting.material_props->step_num[3]);
+        extract_vector_element(child_node->first_node("Ep")->value(), EpString, Epstress_lim, setting.material_props->step_num[4]);
+        extract_vector_element(child_node->first_node("np")->value(), npString, npstress_lim, setting.material_props->step_num[5]);
+        extract_vector_element(child_node->first_node("H")->value(), HString, Hstress_lim, setting.material_props->step_num[6]);
+
+        setting.material_props->a0stress_lim.resize(2, std::vector<double>(a0stress_lim.size() / 2));
+        setting.material_props->g0stress_lim.resize(2, std::vector<double>(g0stress_lim.size() / 2));
+        setting.material_props->g1stress_lim.resize(2, std::vector<double>(g1stress_lim.size() / 2));
+        setting.material_props->g2stress_lim.resize(2, std::vector<double>(g2stress_lim.size() / 2));
+        setting.material_props->Epstress_lim.resize(2, std::vector<double>(Epstress_lim.size() / 2));
+        setting.material_props->npstress_lim.resize(2, std::vector<double>(npstress_lim.size() / 2));
+        setting.material_props->Hstress_lim.resize(2, std::vector<double>(Hstress_lim.size() / 2));
         
         if (a0String.size() <= 0 || g0String.size() <= 0 || g1String.size() <= 0
             || g2String.size() <= 0 || EpString.size() <= 0 || npString.size() <= 0
-            || HString.size() <= 0) 
+            || HString.size() <= 0)
             return ErrorCode::SETTING_FILE_NAN_MATERIAL_PROPERTIES;
         else
         {
@@ -149,30 +172,126 @@ namespace rope {
             setting.material_props->EpCoefs.resize(EpString.size());
             setting.material_props->npCoefs.resize(npString.size());
             setting.material_props->H_vpCoefs.resize(HString.size());
-
+            
+            // a0;
             for (size_t i = 0; i < a0String.size(); i++) {
-                setting.material_props->a0Coefs[i] = stod(a0String[i]);
+                if (!is_number(a0String[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->a0Coefs[i] = stod(a0String[i]);
             }
+            for (size_t i = 0; i < a0stress_lim.size() / 2; i++) {
+                if (!is_number(a0stress_lim[2 * i]) || !is_number(a0stress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->a0stress_lim[0][i] = stod(a0stress_lim[2 * i]);
+                    setting.material_props->a0stress_lim[1][i] = stod(a0stress_lim[2 * i + 1]);
+                }
+            }
+            
+            // g0;
             for (size_t i = 0; i < g0String.size(); i++) {
-                setting.material_props->g0Coefs[i] = stod(g0String[i]);
+                if (!is_number(g0String[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->g0Coefs[i] = stod(g0String[i]);
             }
+            for (size_t i = 0; i < g0stress_lim.size() / 2; i++) {
+                if (!is_number(g0stress_lim[2 * i]) || !is_number(g0stress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->g0stress_lim[0][i] = stod(g0stress_lim[2 * i]);
+                    setting.material_props->g0stress_lim[1][i] = stod(g0stress_lim[2 * i + 1]);
+                }
+            }
+
+            // g1;
             for (size_t i = 0; i < g1String.size(); i++) {
-                setting.material_props->g1Coefs[i] = stod(g1String[i]);
+                if (!is_number(g1String[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->g1Coefs[i] = stod(g1String[i]);
             }
+            for (size_t i = 0; i < g1stress_lim.size() / 2; i++) {
+                if (!is_number(g1stress_lim[2 * i]) || !is_number(g1stress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->g1stress_lim[0][i] = stod(g1stress_lim[2 * i]);
+                    setting.material_props->g1stress_lim[1][i] = stod(g1stress_lim[2 * i + 1]);
+                }
+            }
+
+            // g2;
             for (size_t i = 0; i < g2String.size(); i++) {
-                setting.material_props->g2Coefs[i] = stod(g2String[i]);
+                if (!is_number(g2String[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->g2Coefs[i] = stod(g2String[i]);
             }
+            for (size_t i = 0; i < g2stress_lim.size() / 2; i++) {
+                if (!is_number(g2stress_lim[2 * i]) || !is_number(g2stress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->g2stress_lim[0][i] = stod(g2stress_lim[2 * i]);
+                    setting.material_props->g2stress_lim[1][i] = stod(g2stress_lim[2 * i + 1]);
+                }
+            }
+
+            // Ep;
             for (size_t i = 0; i < EpString.size(); i++) {
-                setting.material_props->EpCoefs[i] = stod(EpString[i]);
+                if (!is_number(EpString[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->EpCoefs[i] = stod(EpString[i]);
             }
+            for (size_t i = 0; i < Epstress_lim.size() / 2; i++) {
+                if (!is_number(Epstress_lim[2 * i]) || !is_number(Epstress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->Epstress_lim[0][i] = stod(Epstress_lim[2 * i]);
+                    setting.material_props->Epstress_lim[1][i] = stod(Epstress_lim[2 * i + 1]);
+                }
+            }
+
+            // np;
             for (size_t i = 0; i < npString.size(); i++) {
-                setting.material_props->npCoefs[i] = stod(npString[i]);
+                if (!is_number(npString[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->npCoefs[i] = stod(npString[i]);
             }
+            for (size_t i = 0; i < npstress_lim.size() / 2; i++) {
+                if (!is_number(npstress_lim[2 * i]) || !is_number(npstress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->npstress_lim[0][i] = stod(npstress_lim[2 * i]);
+                    setting.material_props->npstress_lim[1][i] = stod(npstress_lim[2 * i + 1]);
+                }
+            }
+
+            // H_vp;
             for (size_t i = 0; i < HString.size(); i++) {
-                setting.material_props->H_vpCoefs[i] = stod(HString[i]);
+                if (!is_number(HString[i]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else
+                    setting.material_props->H_vpCoefs[i] = stod(HString[i]);
             }
+            for (size_t i = 0; i < Hstress_lim.size() / 2; i++) {
+                if (!is_number(Hstress_lim[2 * i]) || !is_number(Hstress_lim[2 * i + 1]))
+                    return ErrorCode::NAN_INPUT_DATA;
+                else {
+                    setting.material_props->Hstress_lim[0][i] = stod(Hstress_lim[2 * i]);
+                    setting.material_props->Hstress_lim[1][i] = stod(Hstress_lim[2 * i + 1]);
+                }
+            }
+
+            // Clear parameters;
+            a0String.clear(); a0stress_lim.clear(); g0String.clear(); g0stress_lim.clear();
+            g1String.clear(); g1stress_lim.clear(); g2String.clear(); g2stress_lim.clear();
+            EpString.clear(); Epstress_lim.clear(); npString.clear(); npstress_lim.clear();
+            HString.clear(); Hstress_lim.clear();
         }
-        
+
         ////////////////////////////////////////////////////////////////////////////
         // Check Material Properties Input Data.
         ////////////////////////////////////////////////////////////////////////////
@@ -193,11 +312,13 @@ namespace rope {
 
         setting.limit = stoi(child_node->first_node("limit")->value());
 
-        setting.tol = stod(child_node->first_node("tol")->value()); 
+        setting.tol = stod(child_node->first_node("tol")->value());
+
+        // Clear parameters;
+        names.clear();
 
         return ErrorCode::SUCCESS;
     }
-
     ////////////////////////////////////////////////////////////////////////////////
     /// Check whether file exist.
     ////////////////////////////////////////////////////////////////////////////////
@@ -262,9 +383,9 @@ namespace rope {
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    /// Check whether each of the string in a whitespace separated text is a number.
+    /// Extract elements in input vector(string).
     ////////////////////////////////////////////////////////////////////////////////
-    int ReadIn::extract_multi_number(const std::string token,
+    int ReadIn::extract_vector_element(const std::string token,
         std::vector<std::string>& number_string)
     {
         std::stringstream line_stream;
@@ -276,6 +397,37 @@ namespace rope {
         {
             number_string.push_back(cell);
             success = success && is_number(cell);
+        }
+        return success;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    /// Extract polynomial coefficients (with step limits) from the input strings.
+    ////////////////////////////////////////////////////////////////////////////////
+    int ReadIn::extract_vector_element(const std::string token,
+        std::vector<std::string>& number_string, std::vector<std::string>& step_lim,
+        int& step_num)
+    {
+        std::stringstream line_stream;
+        line_stream << token;
+        number_string.clear();
+        step_lim.clear();
+        string cell;
+        char limit = 'L';
+        int success = 1, count = 0;
+        while (line_stream >> cell)
+        {
+            if (limit != cell.at(0)) {
+                number_string.push_back(cell);
+                success = success && is_number(cell);
+                count += 1;
+            }
+            else {
+                cell.erase(0, 2); cell.erase(cell.end() - 1);
+                step_lim.push_back(cell);
+                step_lim.push_back(to_string(count));
+                step_num += 1;
+            }
         }
         return success;
     }

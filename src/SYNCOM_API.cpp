@@ -15,6 +15,8 @@
 // limitations under the License.
 ////////////////////////////////////////////////////////////////////////////////
 
+#define EXPORT_SYNCOM_API
+
 #include "error.h"
 #include "readIn_api.h"
 #include "setting.h"
@@ -28,25 +30,25 @@
 
 using namespace std;
 using namespace std::chrono;
-using namespace rope;
+//using namespace rope;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Construct objects to handle data.
 ////////////////////////////////////////////////////////////////////////////////
-ErrorCode errCodes = ErrorCode::SUCCESS;
-ErrorOut errorOut;
-MatProps mat_props;
-Setting setting(&mat_props);
-strainSolver strainOutput(setting);
-stressSolver stressOutput(setting);
+rope::ErrorCode errCodes = rope::ErrorCode::SUCCESS;
+rope::ErrorOut errorOut;
+rope::MatProps mat_props;
+rope::Setting setting(&mat_props);
+rope::strainSolver strainOutput(setting);
+rope::stressSolver stressOutput(setting);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Read User's Inputs from Setting.xml and initilize the application.
 ////////////////////////////////////////////////////////////////////////////////
-int DECLDIR initialize(int module, char input_file[]) {
+int DECLDIR initializeSC(int module, char input_file[]) {
 
     /// Sets up working folder;
-    ReadIn readInput;
+    rope::ReadIn readInput;
     std::string filename(input_file);
     setting.setting_folder = filename.substr(0, filename.find_last_of("/\\") + 1);
     setting.setting_file = filename;
@@ -54,13 +56,13 @@ int DECLDIR initialize(int module, char input_file[]) {
 
     /// Print info and read inputs;
     errCodes = readInput.readIn_data(setting);
-
+    
     // Print copy_right;
-    print_copyright(setting.log_filename);
+    print_copyright(setting);
     print_message(setting, "  Reading Setting.xml ...\n");
 
     // Read inputs;
-    if (errCodes != ErrorCode::SUCCESS)
+    if (errCodes != rope::ErrorCode::SUCCESS)
     {
         print_log(setting, errCodes, errorOut);
         return 1;
@@ -71,7 +73,7 @@ int DECLDIR initialize(int module, char input_file[]) {
 
     print_message(setting, "  Validating input data...\n");
     errCodes = setting.validate();
-    if (errCodes != ErrorCode::SUCCESS)
+    if (errCodes != rope::ErrorCode::SUCCESS)
     {
         print_log(setting, errCodes, errorOut);
         return 1;
@@ -82,9 +84,9 @@ int DECLDIR initialize(int module, char input_file[]) {
 
     // Initialization of output instance;
     if (module == 0)
-        strainOutput = strainSolver(setting);
+        strainOutput = rope::strainSolver(setting);
     else {
-        stressOutput = stressSolver(setting);
+        stressOutput = rope::stressSolver(setting);
     }
 
     /// Starts simulation;
@@ -106,7 +108,7 @@ int DECLDIR SynCOM(double dataIn, double dt)
         errCodes = stressOutput.syncom_solver(setting, dataIn, dt);
 
     /// Check simulation end status.
-    if (errCodes != ErrorCode::SUCCESS)
+    if (errCodes != rope::ErrorCode::SUCCESS)
     {
         print_log(setting, errCodes, errorOut);
         return 1;

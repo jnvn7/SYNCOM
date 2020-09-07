@@ -30,11 +30,9 @@
 
 namespace rope {
 
-    /// \brief Unitility functions.
+    /// Write log files.
     int print_message(Setting& setting, string message);
-    void print_copyright(string& filename);
-
-    /// Write log file.
+    void print_copyright(Setting& setting);
     int print_log(Setting& setting, ErrorCode errCodes, ErrorOut errOut);
 
 } // End of namespace rope.

@@ -21,6 +21,7 @@
 
 #include "setting.h"
 #include "error.h"
+#include "printOut_api.h"
 #include "rapidxml-1.13/rapidxml.hpp"
 #include "rapidxml-1.13/rapidxml_print.hpp"
 #include <vector>
@@ -47,14 +48,18 @@ namespace rope {
     private:
         
         // Used when reading main input data file.
-        int readInput(std::vector<std::vector<double>>& dataIn, const std::string data_file_name, const int header_rows);
+        int readInput(std::vector<std::vector<double>>& dataIn, 
+            const std::string data_file_name, const int header_rows);
         int check_file_existence(const std::string file_name);
         int check_availability(const rapidxml::xml_node<>* node,
             const std::vector<std::string>& names);
         int check_is_number(const rapidxml::xml_node<>* node,
             const std::vector<std::string>& names);
-        int extract_multi_number(const std::string token,
+        int extract_vector_element(const std::string token,
             std::vector<std::string>& number_string);
+        int extract_vector_element(const std::string token,
+            std::vector<std::string>& number_string, 
+            std::vector<std::string>& step_lim, int& step_num);
         bool is_number(const std::string& token);
         bool is_integer(const std::string& token);
     };

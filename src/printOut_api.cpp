@@ -71,7 +71,7 @@ namespace rope {
     ////////////////////////////////////////////////////////////////////////////////
     /// Print copyright.
     ////////////////////////////////////////////////////////////////////////////////
-    void print_copyright(string& filename)
+    void print_copyright(Setting& setting)
     {
         string message = "---------------------------------------------------------"
             "------------\n"
@@ -81,7 +81,7 @@ namespace rope {
             "---------------------------------------------------------------------\n";
 
         ofstream log_file;
-        log_file.open(filename, std::ofstream::trunc);
+        log_file.open(setting.log_filename, std::ofstream::trunc);
         log_file << message << endl << endl;
         log_file.close();
     }

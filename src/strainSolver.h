@@ -34,10 +34,15 @@ namespace rope {
         double te, dPsy, eps_vp_inc, sigmaim1, g2im1;
 
         double sumDn1, sumDn2, Atemp, Btemp, eps_vp_temp;
+        int flag;
         vector<double> qn;
         vector<double> qnim1;
 
-        void calCoeffs(Setting& setting, double sigma, double dt);
+//        void calCoeffs(Setting& setting, double sigma, double dt);
+        int calCoeffs_step(int step_num, double sigma,
+            std::vector<std::vector<double>>& stress_lim,
+            std::vector<double>& xyzCoefs, double& xyz);
+        int calCoeffs(Setting& setting, double sigma, double dt);
         void integrateSR(Setting& setting, double sigma, double dt);
         void calQn(Setting& setting, double sigma);
 

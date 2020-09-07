@@ -1,4 +1,4 @@
-// SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
+  // SYNCOM - A Nonlinear Synthetic Rope Numerical Computation Software
 //
 // Copyright 2020 Jessica Nguyen <nvnguyen@umass.edu>
 //
@@ -19,7 +19,7 @@
 
 namespace rope {
     ///////////////////////////////////////////////////////////////////////////////
-    /// Initizlizes Instance;
+    /// Class constructor - Initialize instance;
     ///////////////////////////////////////////////////////////////////////////////
     strainSolver::strainSolver(Setting& setting) {
         
@@ -32,45 +32,132 @@ namespace rope {
         
         simTime = sigma_In = eps = eps_ve = eps_vp = 0;
     }
+    ///////////////////////////////////////////////////////////////////////////////
+    /// Evaluates the material parameters from the input polynomial coefficients;
+    /// a0, g0, g1, g2, Ep, np, H; With Step Functions;
+    ///////////////////////////////////////////////////////////////////////////////
+    int strainSolver::calCoeffs_step(int step_num, double sigma,
+        std::vector<std::vector<double>>& stress_lim,
+        std::vector<double>& xyzCoefs, double& xyz) {
+
+        for (int i = 0; i < step_num; i++) {
+            if (i == 0 && sigma <= stress_lim[0][i]) {
+                for (int j = 0; j < stress_lim[1][i]; j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j);
+                }
+                return 0; // Success
+            }
+            else if (i == (step_num - 1) && sigma > stress_lim[0][i]) {
+                for (int j = stress_lim[1][i]; j < xyzCoefs.size(); j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j - stress_lim[1][i]);
+                }
+                return 0;
+            }
+            else if (sigma > stress_lim[0][i] && sigma <= stress_lim[0][i + 1]) {
+                for (int j = stress_lim[1][i]; j < stress_lim[1][i + 1]; j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j - stress_lim[1][i]);
+                }
+                return 0;
+            }
+        }
+        return 1; // Failed to find step limits;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
+    int strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
 
         /// Calculate a0, g0, g1, g2, Ep, np, H_vp;
-        a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
-        for (size_t i = 0; i < setting.material_props->a0Coefs.size(); i++) {
-            a0 += setting.material_props->a0Coefs[i] * pow(sigma, i);
+        a0 = g0 = g1 = g2 = Ep = np = H_vp = flag = 0;
+        if (setting.material_props->step_num[0] == 0) {
+            for (int i = 0; i < setting.material_props->a0Coefs.size(); i++) {
+                a0 += setting.material_props->a0Coefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[0], sigma, 
+                setting.material_props->a0stress_lim,
+                setting.material_props->a0Coefs, a0);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->g0Coefs.size(); i++) {
-            g0 += setting.material_props->g0Coefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[1] == 0) {
+            for (int i = 0; i < setting.material_props->g0Coefs.size(); i++) {
+                g0 += setting.material_props->g0Coefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[1], sigma, 
+                setting.material_props->g0stress_lim,
+                setting.material_props->g0Coefs, g0);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->g1Coefs.size(); i++) {
-            g1 += setting.material_props->g1Coefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[2] == 0) {
+            for (int i = 0; i < setting.material_props->g1Coefs.size(); i++) {
+                g1 += setting.material_props->g1Coefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[2], sigma, 
+                setting.material_props->g1stress_lim,
+                setting.material_props->g1Coefs, g1);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->g2Coefs.size(); i++) {
-            g2 += setting.material_props->g2Coefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[3] == 0) {
+            for (int i = 0; i < setting.material_props->g2Coefs.size(); i++) {
+                g2 += setting.material_props->g2Coefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[3], sigma, 
+                setting.material_props->g2stress_lim,
+                setting.material_props->g2Coefs, g2);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->EpCoefs.size(); i++) {
-            Ep += setting.material_props->EpCoefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[4] == 0) {
+            for (int i = 0; i < setting.material_props->EpCoefs.size(); i++) {
+                Ep += setting.material_props->EpCoefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[4], sigma, 
+                setting.material_props->Epstress_lim,
+                setting.material_props->EpCoefs, Ep);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->npCoefs.size(); i++) {
-            np += setting.material_props->npCoefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[5] == 0) {
+            for (int i = 0; i < setting.material_props->npCoefs.size(); i++) {
+                np += setting.material_props->npCoefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[5], sigma,
+                setting.material_props->npstress_lim,
+                setting.material_props->npCoefs, np);
+        }
+        if (flag) return flag;
 
-        for (size_t i = 0; i < setting.material_props->H_vpCoefs.size(); i++) {
-            H_vp += setting.material_props->H_vpCoefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[6] == 0) {
+            for (int i = 0; i < setting.material_props->H_vpCoefs.size(); i++) {
+                H_vp += setting.material_props->H_vpCoefs[i] * pow(sigma, i);
+            }
         }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[6], sigma, 
+                setting.material_props->Hstress_lim,
+                setting.material_props->H_vpCoefs, H_vp);
+        }
+        if (flag) return flag;
 
         /// Calculates dPsy;
         dPsy = 1 / a0 * dt;
+        return flag;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -104,9 +191,13 @@ namespace rope {
         // Check if dt is negative;
         if (dt <= 0)
             return ErrorCode::BAD_DT_INPUT;
+        else if (dataIn < 0)
+            return ErrorCode::NEGATIVE_STRESS_INPUT;
 
         /// Calculates instantaneous value for each coefficient;
-        calCoeffs(setting, dataIn, dt);
+        flag = calCoeffs(setting, dataIn, dt);
+        if (flag)
+            return ErrorCode::NON_LOGICAL_COEFFICIENT_INPUT;
         
         /// Viscoelastic strain;
         sumDn1 = 0; sumDn2 = 0;

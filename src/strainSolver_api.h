@@ -37,9 +37,13 @@ namespace rope {
         vector<double> qn;
         vector<double> qnim1;
 
+        int flag;
         double sigma_yield, simTime, eps, eps_ve, eps_vp, sigma_In;
 
-        void calCoeffs(Setting& setting, double sigma, double dt);
+        int calCoeffs_step(int step_num, double sigma,
+            std::vector<std::vector<double>>& stress_lim,
+            std::vector<double>& xyzCoefs, double& xyz);
+        int calCoeffs(Setting& setting, double sigma, double dt);
         void integrateSR(Setting& setting, double sigma, double dt);
         void calQn(Setting& setting, double sigma);
 

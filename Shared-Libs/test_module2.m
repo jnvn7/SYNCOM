@@ -21,7 +21,7 @@ module = 1;
 input_file = 'Setting.xml';
 
 %% Read strain input from text file;
-fileID = fopen('inputData/SYNCOM_Input_mod2.txt', 'r');
+fileID = fopen('inputData/SYNCOM_Input_mod2hs.txt', 'r');
 fgetl(fileID);
 inputdata = fscanf(fileID, '%f', [2 inf]);
 time = inputdata(1,:);
@@ -43,9 +43,10 @@ eps_ve = eps; eps_vp = eps;
 loadlibrary('SynCOM_API','SynCOM_API.h');
 
 % Initialization.
-calllib('SynCOM_API','initialize', module, input_file);
-err = 0;
+calllib('SynCOM_API','initializeSC', module, input_file);
+err = 0; 
 % Call solver
+tic
 for i = 2:length(eps)
     if (err == 0)
         err = calllib('SynCOM_API','SynCOM', eps(i), dt(i));
@@ -57,12 +58,14 @@ for i = 2:length(eps)
         err('Error detected. Check SynCOM_Log.txt for details.!');
     end
 end
+toc
 
 %% Unload library.
 calllib('SynCOM_API','close_app');
 unloadlibrary('SynCOM_API');
 
-
+%% Plots results;
+plot(time, sigma_cal);
 
 
 

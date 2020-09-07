@@ -42,6 +42,17 @@ namespace rope {
         std::vector<double> EpCoefs;
         std::vector<double> npCoefs;
         std::vector<double> H_vpCoefs;
+
+        /// Stores coefficient step limit;
+        std::vector<std::vector<double>> a0stress_lim;
+        std::vector<std::vector<double>> g0stress_lim;
+        std::vector<std::vector<double>> g1stress_lim;
+        std::vector<std::vector<double>> g2stress_lim;
+        std::vector<std::vector<double>> npstress_lim;
+        std::vector<std::vector<double>> Epstress_lim;
+        std::vector<std::vector<double>> Hstress_lim;
+
+        std::vector<int> step_num;
     };
 
     /// \brief Setting sets up solver.
@@ -55,6 +66,7 @@ namespace rope {
         Setting(const  std::string path, MatProps* mat_props);
         Setting(MatProps* mat_props) {
             material_props = mat_props;
+            material_props->step_num = std::vector<int>(7, 0);
         };
 
         ErrorCode validate(void);
@@ -82,7 +94,7 @@ namespace rope {
 
         /// Path to output file for results;
         std::string output_filename;
-        
+
         /// Path to log file and time parameters;
         std::string log_filename;
 

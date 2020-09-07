@@ -38,42 +38,130 @@ namespace rope {
 
     ///////////////////////////////////////////////////////////////////////////////
     /// Evaluates the material parameters from the input polynomial coefficients;
+    /// a0, g0, g1, g2, Ep, np, H; With Step Functions;
+    ///////////////////////////////////////////////////////////////////////////////
+    int strainSolver::calCoeffs_step(int step_num, double sigma, 
+        std::vector<std::vector<double>>& stress_lim, 
+        std::vector<double>& xyzCoefs, double& xyz) {
+     
+        for (int i = 0; i < step_num; i++) {
+            if (i == 0 && sigma <= stress_lim[0][i]) {
+                for (int j = 0; j < stress_lim[1][i]; j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j);
+                }
+                return 0; // Success
+            }
+            else if (i == (step_num - 1) && sigma > stress_lim[0][i]) {
+                for (int j = stress_lim[1][i]; j < xyzCoefs.size(); j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j - stress_lim[1][i]);
+                }
+                return 0;
+            } 
+            else if (sigma > stress_lim[0][i] && sigma <= stress_lim[0][i+1]) {
+                for (int j = stress_lim[1][i]; j < stress_lim[1][i + 1]; j++) {
+                    xyz += xyzCoefs[j] * pow(sigma, j - stress_lim[1][i]);
+                }
+                return 0;
+            }
+        }
+        return 1; // Failed to find step limits;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// Evaluates the material parameters from the input polynomial coefficients;
     /// a0, g0, g1, g2, Ep, np, H;
     ///////////////////////////////////////////////////////////////////////////////
-    void strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
-
+    int strainSolver::calCoeffs(Setting& setting, double sigma, double dt) {
+        
         /// Calculate a0, g0, g1, g2, Ep, np, H_vp;
-        a0 = g0 = g1 = g2 = Ep = np = H_vp = 0;
-        for (int i = 0; i < setting.material_props->a0Coefs.size(); i++) {
-            a0 += setting.material_props->a0Coefs[i] * pow(sigma, i);
+        a0 = g0 = g1 = g2 = Ep = np = H_vp = flag = 0;
+        if (setting.material_props->step_num[0] == 0) {
+            for (int i = 0; i < setting.material_props->a0Coefs.size(); i++) {
+                a0 += setting.material_props->a0Coefs[i] * pow(sigma, i);
+            }
         }
-
-        for (int i = 0; i < setting.material_props->g0Coefs.size(); i++) {
-            g0 += setting.material_props->g0Coefs[i] * pow(sigma, i);
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[0], sigma, 
+                setting.material_props->a0stress_lim,
+                setting.material_props->a0Coefs, a0);
         }
+        if (flag) return flag;
 
-        for (int i = 0; i < setting.material_props->g1Coefs.size(); i++) {
-            g1 += setting.material_props->g1Coefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[1] == 0) {
+            for (int i = 0; i < setting.material_props->g0Coefs.size(); i++) {
+                g0 += setting.material_props->g0Coefs[i] * pow(sigma, i);
+            }
         }
-
-        for (int i = 0; i < setting.material_props->g2Coefs.size(); i++) {
-            g2 += setting.material_props->g2Coefs[i] * pow(sigma, i);
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[1], sigma, 
+                setting.material_props->g0stress_lim,
+                setting.material_props->g0Coefs, g0);
         }
+        if (flag) return flag;
 
-        for (int i = 0; i < setting.material_props->EpCoefs.size(); i++) {
-            Ep += setting.material_props->EpCoefs[i] * pow(sigma, i);
+        if (setting.material_props->step_num[2] == 0) {
+            for (int i = 0; i < setting.material_props->g1Coefs.size(); i++) {
+                g1 += setting.material_props->g1Coefs[i] * pow(sigma, i);
+            }
         }
-
-        for (int i = 0; i < setting.material_props->npCoefs.size(); i++) {
-            np += setting.material_props->npCoefs[i] * pow(sigma, i);
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[2], sigma, 
+                setting.material_props->g1stress_lim,
+                setting.material_props->g1Coefs, g1);
         }
-
-        for (int i = 0; i < setting.material_props->H_vpCoefs.size(); i++) {
-            H_vp += setting.material_props->H_vpCoefs[i] * pow(sigma, i);
+        if (flag) return flag;
+     
+        if (setting.material_props->step_num[3] == 0) {
+            for (int i = 0; i < setting.material_props->g2Coefs.size(); i++) {
+                g2 += setting.material_props->g2Coefs[i] * pow(sigma, i);
+            }
         }
-
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[3], sigma, 
+                setting.material_props->g2stress_lim,
+                setting.material_props->g2Coefs, g2);
+        }
+        if (flag) return flag;
+     
+        if (setting.material_props->step_num[4] == 0) {
+            for (int i = 0; i < setting.material_props->EpCoefs.size(); i++) {
+                Ep += setting.material_props->EpCoefs[i] * pow(sigma, i);
+            }
+        }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[4], sigma, 
+                setting.material_props->Epstress_lim,
+                setting.material_props->EpCoefs, Ep);
+        }
+        if (flag) return flag;
+     
+        if (setting.material_props->step_num[5] == 0) {
+            for (int i = 0; i < setting.material_props->npCoefs.size(); i++) {
+                np += setting.material_props->npCoefs[i] * pow(sigma, i);
+            }
+        }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[5], sigma, 
+                setting.material_props->npstress_lim,
+                setting.material_props->npCoefs, np);
+        }
+        if (flag) return flag;
+     
+        if (setting.material_props->step_num[6] == 0) {
+            for (int i = 0; i < setting.material_props->H_vpCoefs.size(); i++) {
+                H_vp += setting.material_props->H_vpCoefs[i] * pow(sigma, i);
+            }
+        }
+        else {
+            flag = calCoeffs_step(setting.material_props->step_num[6], sigma, 
+                setting.material_props->Hstress_lim,
+                setting.material_props->H_vpCoefs, H_vp);
+        }
+        if (flag) return flag;
+    
         /// Calculates dPsy;
         dPsy = 1 / a0 * dt;
+        return flag; 
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -107,64 +195,71 @@ namespace rope {
         for (int i = 1; i < setting.dataIn.size(); i++) {
 
             /// Calculates instantaneous value for each coefficient;
-            calCoeffs(setting, setting.dataIn[i][1], setting.dt[i]);
-            
-            /// Viscoelastic strain;
-            sumDn1 = 0; sumDn2 = 0;
-            for (int i1 = 0; i1 < setting.material_props->lamdaN.size(); i1++) {
-                sumDn1 = sumDn1 + setting.material_props->Dn[i1] * 
-                            exp(-setting.material_props->lamdaN[i1] * dPsy) * qnim1[i1];
-                sumDn2 = sumDn2 + setting.material_props->Dn[i1] * 
-                            (1 - exp(-setting.material_props->lamdaN[i1] * dPsy)) / 
-                            (setting.material_props->lamdaN[i1] * dPsy);
-            }
-
-            Atemp = g0 * setting.material_props->Do + 
-                        g1 * g2 * setting.material_props->sumDn - 
-                        g1 * g2 * sumDn2;
-            Btemp = g1 * sumDn1 - g1 * g2im1 * sigmaim1 * sumDn2;
-
-            eps_ve[i] = Atemp * setting.dataIn[i][1] - Btemp;
-
-            /// Viscoplastic strain;
-            if ((setting.dataIn[i][1] - sigma_yield) > 
-                    setting.tol && te == 0) 
-                eps_vp_temp = setting.dataIn[i][1] / Ep - eps_vp[i-1];  
-            else 
-                eps_vp_temp = 0;
-
-            // Updates eps_vp_inc;
-            if ((setting.dataIn[i][1] - sigma_yield) > setting.tol) {
-                te = te + setting.dt[i];
-                integrateSR(setting, setting.dataIn[i][1], setting.dt[i]);    
-            }
+            if (setting.dataIn[i][1] < 0)
+                return ErrorCode::NEGATIVE_STRESS_INPUT;
             else {
-                eps_vp_inc = 0;
-            }
 
-            // Update total viscoplastic deformation;
-            eps_vp[i] = eps_vp[i-1] + eps_vp_inc + eps_vp_temp;
+                flag = calCoeffs(setting, setting.dataIn[i][1], setting.dt[i]);
+                if (flag) 
+                    return ErrorCode::NON_LOGICAL_COEFFICIENT_INPUT;
 
-            /// Update total strain;
-            eps[i] = eps_ve[i] + eps_vp[i];
-
-            /// Update sigma_yield, the effective time, and simulation time;
-            if ((sigmaim1 - setting.dataIn[i][1]) >
-                setting.tol && te != 0) {
-                if (sigmaim1 > sigma_yield) {
-                    sigma_yield = sigmaim1;
+                /// Viscoelastic strain;
+                sumDn1 = 0; sumDn2 = 0;
+                for (int i1 = 0; i1 < setting.material_props->lamdaN.size(); i1++) {
+                    sumDn1 = sumDn1 + setting.material_props->Dn[i1] *
+                        exp(-setting.material_props->lamdaN[i1] * dPsy) * qnim1[i1];
+                    sumDn2 = sumDn2 + setting.material_props->Dn[i1] *
+                        (1 - exp(-setting.material_props->lamdaN[i1] * dPsy)) /
+                        (setting.material_props->lamdaN[i1] * dPsy);
                 }
-                te = 0;
+
+                Atemp = g0 * setting.material_props->Do +
+                    g1 * g2 * setting.material_props->sumDn -
+                    g1 * g2 * sumDn2;
+                Btemp = g1 * sumDn1 - g1 * g2im1 * sigmaim1 * sumDn2;
+
+                eps_ve[i] = Atemp * setting.dataIn[i][1] - Btemp;
+
+                /// Viscoplastic strain;
+                if ((setting.dataIn[i][1] - sigma_yield) >
+                    setting.tol && te == 0)
+                    eps_vp_temp = setting.dataIn[i][1] / Ep - eps_vp[i - 1];
+                else
+                    eps_vp_temp = 0;
+
+                // Updates eps_vp_inc;
+                if ((setting.dataIn[i][1] - sigma_yield) > setting.tol) {
+                    te = te + setting.dt[i];
+                    integrateSR(setting, setting.dataIn[i][1], setting.dt[i]);
+                }
+                else {
+                    eps_vp_inc = 0;
+                }
+
+                // Update total viscoplastic deformation;
+                eps_vp[i] = eps_vp[i - 1] + eps_vp_inc + eps_vp_temp;
+
+                /// Update total strain;
+                eps[i] = eps_ve[i] + eps_vp[i];
+
+                /// Update sigma_yield, the effective time, and simulation time;
+                if ((sigmaim1 - setting.dataIn[i][1]) >
+                    setting.tol && te != 0) {
+                    if (sigmaim1 > sigma_yield) {
+                        sigma_yield = sigmaim1;
+                    }
+                    te = 0;
+                }
+                simTime[i] = simTime[i - 1] + setting.dt[i];
+
+                // Update previous time step variables;
+                calQn(setting, setting.dataIn[i][1]);  // updates qnim1
+                g2im1 = g2;
+                sigmaim1 = setting.dataIn[i][1];
+
+                if (isnan(eps[i]))
+                    return ErrorCode::NAN_OUTPUT;
             }
-            simTime[i] = simTime[i-1] + setting.dt[i];
-
-            // Update previous time step variables;
-            calQn(setting, setting.dataIn[i][1]);  // updates qnim1
-            g2im1 = g2;
-            sigmaim1 = setting.dataIn[i][1];   
-
-            if (isnan(eps[i]))
-                return ErrorCode::NAN_OUTPUT; 
         }
         return ErrorCode::SIMULATION_COMPLETED;
     }

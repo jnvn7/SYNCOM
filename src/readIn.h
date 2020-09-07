@@ -26,6 +26,7 @@
 #include <vector>
 #include <math.h>
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <regex>
 
@@ -54,8 +55,11 @@ namespace rope {
             const std::vector<std::string>& names);
         int check_is_number(const rapidxml::xml_node<>* node,
             const std::vector<std::string>& names);
-        int extract_multi_number(const std::string token,
+        int extract_vector_element(const std::string token,
             std::vector<std::string>& number_string);
+        int extract_vector_element(const std::string token,
+            std::vector<std::string>& number_string, 
+            std::vector<std::string>& step_lim, int& step_num);
         bool is_number(const std::string& token);
         bool is_integer(const std::string& token);
     };

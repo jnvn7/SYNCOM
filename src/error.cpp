@@ -26,7 +26,7 @@ namespace rope {
         {
         case ErrorCode::SUCCESS:
             return "Successful.";
-            
+
         case ErrorCode::SETTING_FILE_NO_SETTING_NODE:
             return "Root node of Setting.xml must be setting.";
 
@@ -75,18 +75,27 @@ namespace rope {
         case ErrorCode::WRONG_INPUT_FILE_FORMAT:
             return ("Only maximum of 1 columns are expected in the data file.");
 
+        case ErrorCode::NON_LOGICAL_COEFFICIENT_INPUT:
+            return ("Check input coefficients' step function setup.");
+
         case ErrorCode::NAN_INPUT_DATA:
             return ("NaN values found in input data.");
 
+        case ErrorCode::NEGATIVE_STRESS_INPUT:
+            return ("Negative stress input - No compression allowed.");
+
+        case ErrorCode::NEGATIVE_STRAIN_INPUT:
+            return ("Negative strain input - No compression allowed.");
+
         case ErrorCode::NAN_OUTPUT:
-            return ("Solver encounters NaN output.");  
+            return ("Solver encounters NaN output.");
 
         case ErrorCode::NAN_OUTPUT_VISCO_ELASTIC_MODEL:
             return ("Visco-elastic Solver encounters NaN output.");
 
         case ErrorCode::NAN_OUTPUT_VISCO_ELASTIC_PLASTIC_MODEL:
             return ("Visco-elastic and Visco-plastic Solver encounters NaN output.");
-        
+
         case ErrorCode::NO_CONVERGED_SOLUTION:
             return ("Can't find converged solution.");
 

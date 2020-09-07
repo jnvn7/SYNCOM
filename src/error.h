@@ -40,6 +40,8 @@ namespace rope {
         FAIL_TO_OPEN_INPUT_FILE,
         WRONG_INPUT_FILE_FORMAT,
         NAN_INPUT_DATA,
+        NEGATIVE_STRESS_INPUT,
+        NEGATIVE_STRAIN_INPUT,
 
         /// Check Material Properties' Inputs in ReadIn.h.
         SETTING_FILE_NO_INPUT_DATA_FILE,
@@ -50,6 +52,7 @@ namespace rope {
         SETTING_FILE_BAD_DN_VALUES,
 
         /// Computation;
+        NON_LOGICAL_COEFFICIENT_INPUT,
         NAN_OUTPUT,
         NAN_OUTPUT_VISCO_ELASTIC_MODEL,
         NAN_OUTPUT_VISCO_ELASTIC_PLASTIC_MODEL,

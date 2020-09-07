@@ -38,17 +38,23 @@ namespace rope {
         double te, dPsy, d2Psy, d3Psy, Func, DFunc,
                epsim1, sigmaim1, sigmaim2, g2im1;
 
-        int mode, iter;
+        int mode, iter, flag;
 
         // Temporary variables;
-        double err, stemp, stemp_new, sumDn1, sumDn2, sumDn3, 
+        double jtemp, err, stemp, stemp_new, sumDn1, sumDn2, sumDn3, 
                sumDn4, Exp3, Atemp, Btemp, dAtemp, dBtemp, 
                dCtemp, dExp1, dExp2, dExp3, eps_vp_temp;
 
         vector<double> qn;
         vector<double> qnim1;
 
-        void calCoeffs(Setting& setting, double sigma, double dt);
+        int calCoeffs(Setting& setting, double sigma, double dt);
+        int calCoeffs_step(int step_num, double sigma,
+            std::vector<std::vector<double>>& stress_lim,
+            std::vector<double>& xyzCoefs,
+            double& xyz, double& dxyz, double& d2xyz);
+        void calCoeffs_nostep(std::vector<double>& xyzCoefs, double& xyz,
+            double& dxyz, double& d2xyz, double sigma);
         void calDFunc(int mode, Setting& setting, double sigma, double dt);
         void calQn(Setting& setting, double sigma);
 

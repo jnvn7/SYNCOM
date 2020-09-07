@@ -28,6 +28,7 @@ namespace rope {
         setting_folder = app_path.substr(0, folder_index + 1);
 
         material_props = mat_props;
+        material_props->step_num = std::vector<int>(7, 0);
     }
 
 

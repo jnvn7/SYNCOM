@@ -20,7 +20,11 @@
 #define SynCOM_API_h
 
 #ifndef __unix__
+#ifdef EXPORT_SYNCOM_API
 #define DECLDIR __declspec(dllexport)
+#else
+#define DECLDIR __declspec(dllimport)
+#endif
 #else
 #define DECLDIR
 #endif
@@ -31,7 +35,7 @@ extern "C"
 #endif
 
     // Initialization.
-    int DECLDIR initialize(int module, char input_file[]);
+    int DECLDIR initializeSC(int module, char input_file[]);
    
     // Main solver - Solve for time history of nonlinear stress/strain development.
     int DECLDIR SynCOM(double dataIn, double dt);
