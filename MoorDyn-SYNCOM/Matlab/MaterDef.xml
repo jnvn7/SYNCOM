@@ -1,0 +1,27 @@
+<MaterDef>
+<?xml-stylesheet version="1.0" encoding="UTF-8" ?>
+	<main>
+    		<sigma_yield0>100000.078</sigma_yield0>
+    		<MBL note="normalized with cross-sectional area (Huang 2015 study only)">4.1647e+08</MBL>
+    		<Do note="EA = 1/(Do*g0)*MBL">0.4929</Do>
+    		<Dn>0.203e-3 0.150e-3 6.100e-3</D>
+		<a0>-2.19 32.38 L(0.2) 8.736 -35.03 65.34 -23.52</a0>
+		<g0>0.8519 -2.7882 4.3681 -2.6186</g0>
+		<g1>-0.5488 21.42 -53.527 35.92</g1>
+		<g2>2.05 -14.3 37.34 -30.49</g2>
+		<Ep>0</Ep>
+		<np>0</np>
+		<H>0</H>
+	</main>
+
+	<numerical_setting>
+    		<limit>5000</limit>
+    		<tol>1e-8</tol>
+	</numerical_setting>
+</MaterDef>
+
+
+
+
+
+
